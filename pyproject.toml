@@ -20,7 +20,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = ["dotenv>=0.9.9"]
-version = "1.1.0"
+version = "1.1.1"
 
 [project.urls]
 source = "https://github.com/easydevv/pyhunt"

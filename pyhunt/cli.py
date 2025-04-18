@@ -2,9 +2,10 @@ import argparse
 from dotenv import load_dotenv
 from pathlib import Path
 
-from rich import print
-
 from pyhunt.config import LOG_LEVELS
+from pyhunt.console import Console
+
+console = Console()
 
 
 def update_env_log_level(level_name: str):
@@ -49,14 +50,16 @@ def print_log_level_message(level_name: str):
         "critical": "bold red",
     }
 
-    colored_current_level = f"[{level_colors.get(level_name, 'white')}]{level_name.upper()}[/{level_colors.get(level_name, 'white')}]"
+    colored_current_level = (
+        f"[{level_colors.get(level_name, 'white')}]{level_name.upper()}[/]"
+    )
 
     colored_visible_levels = [
-        f"[{level_colors.get(level_name_upper.lower(), 'white')}]{level_name_upper}[/{level_colors.get(level_name_upper.lower(), 'white')}]"
+        f"[{level_colors.get(level_name_upper.lower(), 'white')}]{level_name_upper}[/]"
         for level_name_upper in visible_levels
     ]
 
-    print(
+    console.print(
         f"HUNT_LEVEL set to '{colored_current_level}'. You will see logs with levels: {', '.join(colored_visible_levels)}."
     )
 
