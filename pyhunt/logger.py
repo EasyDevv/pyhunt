@@ -5,7 +5,7 @@ import threading
 from pyhunt.console import Console
 
 from pyhunt.colors import build_indent, get_color
-from pyhunt.config import LOG_LEVEL, LOG_LEVELS, MAX_REPEAT
+from pyhunt.config import LOG_LEVEL, LOG_LEVELS, MAX_REPEAT, ELAPSED
 from pyhunt.context import call_depth
 from pyhunt.helpers import pretty_json
 
@@ -40,7 +40,7 @@ def _should_suppress_log(key):
 
 
 def _format_truncation_message(event_type, depth):
-    color = "grey50"
+    color = "#808080"
     msg = f"[{color}] ... Repeated logs have been omitted | MAX_REPEAT: {MAX_REPEAT}[/]"
     return format_with_tree_indent(msg, depth, event_type)
 
@@ -162,7 +162,8 @@ def log_exit(
     if suppress:
         return
 
-    core_message = f"{depth_str} 🔳 Exit {sync_async}{colored_name} | {elapsed:.4f}s"
+    elapsed_str = f" | {elapsed:.4f}s" if ELAPSED else ""
+    core_message = f"{depth_str} 🔳 Exit {sync_async}{colored_name}{elapsed_str}"
     message = format_with_tree_indent(core_message, depth, "exit")
 
     try:
@@ -182,29 +183,16 @@ def log_error(
     location: str,
     depth: int,
 ) -> None:
-    import traceback
-
-    tb = exception.__traceback__
-    extracted_tb = traceback.extract_tb(tb)
-    precise_location = location
-    if extracted_tb:
-        last_frame = extracted_tb[-1]
-        try:
-            p = Path(last_frame.filename)
-            precise_location = f"{p.parent.name}/{p.name}:{last_frame.lineno}"
-        except Exception:
-            precise_location = f"{last_frame.filename}:{last_frame.lineno}"
-
     color = get_color(depth)
 
     sync_async = "async " if is_async else ""
     name = f"{class_name}.{func_name}" if class_name else func_name
     depth_str = f"[{color}]{depth}[/]"
     colored_name = f"[bold {color}]{name}[/]"
-    colored_location = f"[bold {color}]{precise_location}[/]"
+    colored_location = f"[bold {color}]{location}[/]"
 
     # Suppression key: (event_type, func_name, class_name, precise_location)
-    suppress_key = ("error", func_name, class_name, precise_location)
+    suppress_key = ("error", func_name, class_name, location)
     suppress, show_trunc = _should_suppress_log(suppress_key)
     if suppress:
         if show_trunc:
@@ -223,7 +211,7 @@ def log_error(
         args_json_str = pretty_json(args_to_format, "", "", color)
 
     core_parts = [
-        f"{depth_str} 🟥 Error {sync_async} {colored_name} | {colored_location} | {elapsed:.4f}s",
+        f"{depth_str} 🟥 Error {sync_async} {colored_name} | {colored_location}{f' | {elapsed:.4f}s' if ELAPSED else ''}",
         f"[bold #E32636]{type(exception).__name__}: {exception}[/]",
         args_json_str,
     ]

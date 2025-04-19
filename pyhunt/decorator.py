@@ -1,11 +1,12 @@
 import functools
 import inspect
-import time
 import os
+import time
+import traceback
 from pathlib import Path
 from typing import Callable, List, Optional, Type, Union
 
-from pyhunt.config import LOG_LEVEL
+from pyhunt.config import LOG_LEVEL, ROOT_DIR
 from pyhunt.context import call_depth, current_function_context
 from pyhunt.helpers import format_call_args
 from pyhunt.logger import log_entry, log_error, log_exit, warning
@@ -90,7 +91,6 @@ def trace(
 
     def _wrap_function(func: Callable) -> Callable:
         func_name = func.__name__
-        module_name = func.__module__
         is_async = inspect.iscoroutinefunction(func)
 
         class_name: Optional[str] = None
@@ -100,20 +100,6 @@ def trace(
                 class_name = qualname_parts[-2]
         except AttributeError:
             pass
-
-        try:
-            filename = inspect.getfile(func)
-            lines, lineno = inspect.getsourcelines(func)
-            p = Path(filename)
-            if class_name is not None:
-                # For class methods, do not add 1
-                location = f"{p.parent.name}/{p.name}:{lineno}"
-            else:
-                # For standalone functions, add 1
-                location = f"{p.parent.name}/{p.name}:{lineno + 1}"
-        except (OSError, TypeError, IOError):
-            # For Error cases, use the module name as location
-            location = module_name
 
         # _invoke sets up context, calls original func, logs entry/error
         # It returns the result (for sync) or awaitable (for async)
@@ -134,8 +120,28 @@ def trace(
 
             start = time.perf_counter()  # Start time needed for error logging
             call_args = {}
+
             try:
                 call_args = format_call_args(func, args, kwargs)
+
+                # Location of the function
+                try:
+                    filename = inspect.getfile(func)
+                    lines, lineno = inspect.getsourcelines(func)
+
+                    p = Path(filename)
+                    path_prefix = (
+                        p.name
+                        if p.parent == Path(ROOT_DIR)
+                        else f"{p.parent.name}/{p.name}"
+                    )
+                    line_offset = (
+                        0 if class_name is not None else 1
+                    )  # For class methods, do not add 1
+                    location = f"{path_prefix}:{lineno + line_offset}"
+                except (TypeError, OSError):
+                    location = f"{p.parent.name}/{p.name}:{lineno}"
+
                 log_entry(
                     func_name,
                     class_name,
@@ -170,6 +176,21 @@ def trace(
                             "kwargs": repr(kwargs),
                             "error": "Failed to format arguments",
                         }
+
+                # Error traceback location
+                tb = e.__traceback__
+                extracted_tb = traceback.extract_tb(tb)
+                if extracted_tb:
+                    last_frame = extracted_tb[-1]
+                    try:
+                        p = Path(last_frame.filename)
+                        if p.parent == Path(ROOT_DIR):
+                            location = f"{p.name}:{last_frame.lineno}"
+                        else:
+                            location = f"{p.parent.name}/{p.name}:{last_frame.lineno}"
+                    except Exception:
+                        location = f"{last_frame.filename}:{last_frame.lineno}"
+
                 log_error(
                     func_name,
                     class_name,
@@ -211,8 +232,8 @@ def trace(
                 )
                 return result
             except Exception as e:
-                import traceback as _traceback_module
                 import sys as _sys_module
+                import traceback as _traceback_module
 
                 full_tb_str = "".join(_traceback_module.format_exception(e))
                 first_tb_str = extract_first_traceback(full_tb_str)
@@ -247,8 +268,8 @@ def trace(
                 # Filter traceback in the outermost frame
                 # filtered_tb = _filter_traceback(e.__traceback__)
 
-                import traceback as _traceback_module
                 import sys as _sys_module
+                import traceback as _traceback_module
 
                 full_tb_str = "".join(_traceback_module.format_exception(e))
                 first_tb_str = extract_first_traceback(full_tb_str)
