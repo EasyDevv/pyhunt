@@ -99,7 +99,7 @@ def main():
             "--critical", action="store_true", help="Set log level to CRITICAL"
         )
         single_command_group.add_argument(
-            "--root", action="store_true", help="Set ROOT_PATH to the current directory"
+            "--root", action="store_true", help="Set ROOT_DIR to the current directory"
         )
         # Add --repeat to the single command parser
         single_command_group.add_argument(
@@ -131,9 +131,9 @@ def main():
             update_env_log_level(level)
             print_log_level_message(level)
         elif single_args.root:
-            root_path = str(Path.cwd())
-            update_env_root_path(root_path)
-            console.print(f"ROOT_PATH set to '{root_path}'")
+            ROOT_DIR = str(Path.cwd())
+            update_env_ROOT_DIR(ROOT_DIR)
+            console.print(f"ROOT_DIR set to '{ROOT_DIR}'")
         elif single_args.repeat is not None:  # Handle --repeat
             repeat_count = single_args.repeat
             update_env_max_repeat(repeat_count)
@@ -159,7 +159,7 @@ def main():
         )
 
         parser.add_argument(
-            "--root", action="store_true", help="Set ROOT_PATH to the current directory"
+            "--root", action="store_true", help="Set ROOT_DIR to the current directory"
         )
         # Add --repeat to the main parser
         parser.add_argument(
@@ -185,19 +185,19 @@ def main():
             env_vars["HUNT_LEVEL"] = level.upper()
             print_log_level_message(level)
 
-            root_path = str(Path.cwd())
-            env_vars["ROOT_PATH"] = root_path
-            console.print(f"ROOT_PATH set to '{root_path}'")
+            ROOT_DIR = str(Path.cwd())
+            env_vars["ROOT_DIR"] = ROOT_DIR
+            console.print(f"ROOT_DIR set to '{ROOT_DIR}'")
 
             # No default for repeat when just 'hunt' is run, so don't set HUNT_MAX_REPEAT here
 
         else:
             # Handle 'hunt <args>' case (multiple default values)
-            # Set ROOT_PATH if --root is present
+            # Set ROOT_DIR if --root is present
             if args.root:
-                root_path = str(Path.cwd())
-                env_vars["ROOT_PATH"] = root_path
-                console.print(f"ROOT_PATH set to '{root_path}'")
+                ROOT_DIR = str(Path.cwd())
+                env_vars["ROOT_DIR"] = ROOT_DIR
+                console.print(f"ROOT_DIR set to '{ROOT_DIR}'")
 
             # Determine and set log level if any log level flag is present
             log_level_set = False
@@ -228,12 +228,12 @@ def main():
                 env_vars["HUNT_MAX_REPEAT"] = str(repeat_count)
                 console.print(f"HUNT_MAX_REPEAT set to '{repeat_count}'")
 
-        # Write all env vars to .env, ensuring ROOT_PATH is first
+        # Write all env vars to .env, ensuring ROOT_DIR is first
         with env_path.open("w") as f:
-            # Write ROOT_PATH first if it exists
-            if "ROOT_PATH" in env_vars:
-                f.write(f"ROOT_PATH={env_vars['ROOT_PATH']}\n")
-                del env_vars["ROOT_PATH"]  # Remove to avoid writing again
+            # Write ROOT_DIR first if it exists
+            if "ROOT_DIR" in env_vars:
+                f.write(f"ROOT_DIR={env_vars['ROOT_DIR']}\n")
+                del env_vars["ROOT_DIR"]  # Remove to avoid writing again
 
             # Write HUNT_LEVEL if it exists
             if "HUNT_LEVEL" in env_vars:
@@ -269,9 +269,9 @@ def update_env_max_repeat(repeat_count: int):
             f.write(f"{key}={value}\n")
 
 
-def update_env_root_path(root_path: str):
+def update_env_ROOT_DIR(ROOT_DIR: str):
     """
-    Update or create the .env file with the specified ROOT_PATH.
+    Update or create the .env file with the specified ROOT_DIR.
     """
     env_path = Path.cwd() / ".env"
     load_dotenv(env_path, override=True)
@@ -282,7 +282,7 @@ def update_env_root_path(root_path: str):
                 if "=" in line:
                     key, value = line.strip().split("=", 1)
                     env_vars[key] = value
-    env_vars["ROOT_PATH"] = root_path
+    env_vars["ROOT_DIR"] = ROOT_DIR
     with env_path.open("w") as f:
         for key, value in env_vars.items():
             f.write(f"{key}={value}\n")
