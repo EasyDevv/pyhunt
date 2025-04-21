@@ -10,7 +10,7 @@ def level_three(value: int):
         result = "number: " + value
         return result
     except TypeError as e:
-        raise TypeError (e)
+        raise TypeError(e)
 
 
 @trace
