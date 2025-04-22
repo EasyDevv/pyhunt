@@ -1,6 +1,7 @@
 import functools
 import inspect
 import os
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -232,14 +233,11 @@ def trace(
                 )
                 return result
             except Exception as e:
-                import sys as _sys_module
-                import traceback as _traceback_module
-
-                full_tb_str = "".join(_traceback_module.format_exception(e))
+                full_tb_str = "".join(traceback.format_exception(e))
                 first_tb_str = extract_first_traceback(full_tb_str)
 
                 os.write(1, first_tb_str.encode())
-                _sys_module.exit(1)
+                sys.exit(1)
             finally:
                 # Reset context after await completes
                 if token_ctx is not None and token_depth is not None:
@@ -265,17 +263,11 @@ def trace(
                 )
                 return result
             except Exception as e:
-                # Filter traceback in the outermost frame
-                # filtered_tb = _filter_traceback(e.__traceback__)
-
-                import sys as _sys_module
-                import traceback as _traceback_module
-
-                full_tb_str = "".join(_traceback_module.format_exception(e))
+                full_tb_str = "".join(traceback.format_exception(e))
                 first_tb_str = extract_first_traceback(full_tb_str)
 
                 os.write(1, first_tb_str.encode())
-                _sys_module.exit(1)
+                sys.exit(1)
 
         return async_wrapper if is_async else wrapper
 

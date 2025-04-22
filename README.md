@@ -43,11 +43,14 @@ uv add pyhunt
 
 ## Quick Start
 
-### 1. Set Up Environment Variable File
+### 1. Set Up and Manage Environment Variable File
+You can set up and manage the `.env` file by running the `hunt` command.
+
 ```bash
 hunt
 ```
-This command sets `HUNT_LEVEL=DEBUG` in your `.env` file.
+
+Executing the above command sets `HUNT_LEVEL=DEBUG` and `ROOT_DIR` to the current directory in the `.env` file.
 
 ### 2. Apply `@trace` to Functions or Classes
 See more examples in the [examples](https://github.com/pyhunt/pyhunt/tree/main/examples) folder.
@@ -115,6 +118,8 @@ logger.critical("This is a critical log.")
 
 ## CLI Usage
 
+You can manage log levels and other settings using the `hunt` command.
+
 ```bash
 hunt [options]
 ```
@@ -126,5 +131,16 @@ hunt [options]
 - `--warning` : WARNING level
 - `--error` : ERROR level
 - `--critical` : CRITICAL level
+- `--root` : Sets the `ROOT_DIR` environment variable to the current directory.
+- `--repeat <count>` : Sets the `HUNT_MAX_REPEAT` environment variable to the specified count. (Log repetition limit)
 
-If no option is specified, the default is `INFO`.
+If no option is specified, the default is `DEBUG`.
+
+### Environment Variables
+
+`pyhunt` supports the following environment variables through the `.env` file:
+
+- `HUNT_LEVEL`: Sets the log level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Default is `DEBUG`.
+- `HUNT_MAX_REPEAT`: The number of times the same log is displayed when repeated. Default is 3.
+- `ELAPSED`: Sets whether to display function execution time in logs (`True` or `False`). Default is `True`.
+- `ROOT_DIR`: Sets the base directory for log output. Displays paths more accurately.

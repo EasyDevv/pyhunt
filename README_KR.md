@@ -46,12 +46,14 @@ uv add pyhunt
 
 ## 빠른 시작
 
-### 1. 환경변수 파일 설정
+### 1. 환경변수 파일 설정 및 관리
+`hunt` 명령어를 실행하여 `.env` 파일을 설정하고 관리할 수 있습니다.
+
 ```bash
 hunt
 ```
 
-`.env` 파일에 `HUNT_LEVEL=DEBUG` 값이 설정됩니다.
+위 명령어를 실행하면 `.env` 파일에 `HUNT_LEVEL=DEBUG`와 `ROOT_DIR`이 현재 디렉토리로 설정됩니다.
 
 
 ### 2. 함수 또는 클래스에 `@trace` 적용
@@ -120,6 +122,8 @@ logger.critical("This is a critical log.")
 
 ## CLI 사용법
 
+`hunt` 명령어를 사용하여 로그 레벨 및 기타 설정을 관리할 수 있습니다.
+
 ```bash
 hunt [옵션]
 ```
@@ -131,8 +135,19 @@ hunt [옵션]
 - `--warning` : WARNING 레벨
 - `--error` : ERROR 레벨
 - `--critical` : CRITICAL 레벨
+- `--root` : `ROOT_DIR` 환경 변수를 현재 디렉토리로 설정합니다.
+- `--repeat <횟수>` : `HUNT_MAX_REPEAT` 환경 변수를 지정된 횟수로 설정합니다. (로그 반복 제한)
 
-옵션 미지정 시 기본값은 `INFO`입니다.
+옵션 미지정 시 기본값은 `DEBUG`입니다.
+
+### 환경 변수
+
+`pyhunt`는 `.env` 파일을 통해 다음 환경 변수를 지원합니다.
+
+- `HUNT_LEVEL`: 로그 레벨 설정 (DEBUG, INFO, WARNING, ERROR, CRITICAL). 기본값은 `DEBUG`입니다.
+- `HUNT_MAX_REPEAT`: 동일한 로그가 반복될 때 표시를 제한하는 횟수입니다. 기본값은 3입니다.
+- `ELAPSED`: 로그에 함수 실행 시간을 표시할지 여부를 설정합니다. (`True` 또는 `False`). 기본값은 `True`입니다.
+- `ROOT_DIR`: 로그 출력 시 기준 디렉토리를 설정합니다. 보다 정확하게 경로를 표시합니다.
 
 
 
